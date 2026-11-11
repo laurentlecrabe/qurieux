@@ -1,0 +1,871 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Qurieux">
+<meta name="theme-color" content="#EEF4FB">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
+</head>
+<body>
+<title>Qurieux</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@600;700;800&display=swap">
+<style>
+/* Mise en page : une seule « scène » plein écran, des écrans qui glissent ; gros boutons en relief, formes rondes, un pastel par chapitre */
+:root{
+  --bg:#EEF4FB; --paper:#FFFFFF; --ink:#1E2A47; --ink-soft:#5B6785; --line:#D6E0EE;
+  --sun:#FFC536; --sun-deep:#E5A400; --tomato:#FF5D4E; --mint:#2EC99A; --sky:#3E9BFF; --lilac:#8C7CFF;
+  --good:#22B07D; --good-bg:#E3F8EF; --oops:#FF8A3D; --oops-bg:#FFF0E3;
+  --display:"Baloo 2","Arial Rounded MT Bold","Trebuchet MS",system-ui,sans-serif;
+  --body:"Nunito","Avenir Next","Segoe UI",system-ui,sans-serif;
+  --r:26px; --press:6px;
+  color-scheme:light;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);margin:0;overflow:hidden;
+  -webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:4px solid var(--sky);outline-offset:3px}
+#app{position:relative;height:100%;overflow:hidden}
+.screen{position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:16px 28px;animation:enter .45s cubic-bezier(.2,.9,.3,1.2) both}
+.wrap{max-width:1040px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+@keyframes enter{from{opacity:0;transform:translateY(24px) scale(.98)}to{opacity:1;transform:none}}
+
+/* Boutons en relief */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;font-family:var(--display);font-weight:800;
+  font-size:1.35rem;padding:14px 26px;border-radius:999px;background:var(--sky);color:#fff;
+  box-shadow:0 var(--press) 0 #1F6FCC;transform:translateY(0);transition:transform .08s,box-shadow .08s;text-decoration:none}
+.btn:active{transform:translateY(var(--press));box-shadow:0 0 0 #1F6FCC}
+.btn.sun{background:var(--sun);color:var(--ink);box-shadow:0 var(--press) 0 var(--sun-deep)}
+.btn.sun:active{box-shadow:none}
+.btn.ghost{background:var(--paper);color:var(--ink);box-shadow:0 var(--press) 0 var(--line)}
+.btn.ghost:active{box-shadow:none}
+.btn.small{font-size:1.05rem;padding:10px 18px;--press:4px}
+
+/* Barre du haut */
+.top{display:flex;align-items:center;gap:12px;justify-content:space-between}
+.pill{display:inline-flex;align-items:center;gap:8px;background:var(--paper);border-radius:999px;padding:8px 16px 8px 10px;
+  font-family:var(--display);font-weight:800;font-size:1.35rem;box-shadow:0 4px 0 var(--line)}
+.pill .star{width:30px;height:30px}
+.icon-btn{width:52px;height:52px;border-radius:50%;background:var(--paper);display:grid;place-items:center;box-shadow:0 4px 0 var(--line);font-size:1.5rem}
+.icon-btn:active{transform:translateY(4px);box-shadow:none}
+.top-right{display:flex;gap:10px;align-items:center}
+.gear{position:relative}
+.gear svg.ring{position:absolute;inset:-4px;width:60px;height:60px;transform:rotate(-90deg);pointer-events:none}
+.gear svg.ring circle{fill:none;stroke:var(--sky);stroke-width:5;stroke-linecap:round;stroke-dasharray:170;stroke-dashoffset:170}
+.gear.holding svg.ring circle{transition:stroke-dashoffset 2s linear;stroke-dashoffset:0}
+
+/* Logo rébus */
+.logo{display:flex;align-items:center;gap:4px}
+.logo svg{height:72px;width:auto}
+.rebus-hint{font-family:var(--display);font-weight:700;color:var(--ink-soft);font-size:.95rem;letter-spacing:.04em}
+
+/* Héros */
+.hero-card{display:grid;grid-template-columns:minmax(150px,230px) 1fr;gap:20px;align-items:center;background:var(--paper);
+  border-radius:34px;padding:18px 26px;box-shadow:0 8px 0 var(--line);position:relative;overflow:hidden}
+.hero-card::before{content:"";position:absolute;right:-60px;top:-60px;width:260px;height:260px;border-radius:50%;background:var(--bg)}
+.hero-card>*{position:relative}
+.hero-svg{width:100%;max-width:230px;animation:bob 3.2s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-8px)}}
+.hello{font-family:var(--display);font-weight:800;font-size:clamp(2rem,4.6vw,3.1rem);line-height:1;margin:0;text-wrap:balance}
+.rank{display:inline-flex;align-items:center;gap:8px;margin-top:8px;font-weight:800;font-size:1.1rem;color:var(--ink-soft)}
+.rank b{color:var(--ink);font-family:var(--display);font-size:1.35rem}
+.meter{height:20px;background:var(--bg);border-radius:999px;overflow:hidden;margin:12px 0 6px;max-width:420px}
+.meter i{display:block;height:100%;background:linear-gradient(90deg,var(--sun),#FFDB70);border-radius:999px;transition:width .8s}
+.meter-label{font-weight:700;color:var(--ink-soft);font-size:1rem}
+.hero-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:14px}
+
+/* Carte des missions */
+.section-title{font-family:var(--display);font-weight:800;font-size:1.7rem;margin:6px 0 -6px;display:flex;align-items:baseline;gap:10px}
+.section-title small{font-family:var(--body);font-size:1rem;color:var(--ink-soft);font-weight:700}
+.missions{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:18px}
+.mission{position:relative;text-align:left;background:var(--paper);border-radius:var(--r);padding:16px 16px 14px;
+  box-shadow:0 var(--press) 0 var(--c2);display:flex;flex-direction:column;gap:8px;min-height:190px;transition:transform .08s,box-shadow .08s}
+.mission:active{transform:translateY(var(--press));box-shadow:0 0 0 var(--c2)}
+.mission .bubble{width:78px;height:78px;border-radius:50%;background:var(--c1);display:grid;place-items:center;font-size:2.6rem}
+.mission h3{font-family:var(--display);font-weight:800;font-size:1.35rem;line-height:1.05;margin:4px 0 0}
+.mission .sub{font-weight:700;color:var(--ink-soft);font-size:.95rem}
+.mission .stars{display:flex;gap:4px;margin-top:auto}
+.mission .stars svg{width:28px;height:28px}
+.mission .tag{position:absolute;top:14px;right:14px;font-family:var(--display);font-weight:800;font-size:.9rem;padding:4px 12px;border-radius:999px;background:var(--c1);color:var(--ink)}
+.mission .tag.new{background:var(--tomato);color:#fff;animation:wiggle 2.4s ease-in-out infinite}
+@keyframes wiggle{0%,80%,100%{transform:rotate(0)}85%{transform:rotate(-7deg)}90%{transform:rotate(7deg)}95%{transform:rotate(-4deg)}}
+
+/* Quiz */
+.qtop{display:grid;grid-template-columns:52px 1fr auto;gap:14px;align-items:center}
+.steps{display:flex;gap:6px}
+.steps i{flex:1;height:14px;border-radius:999px;background:var(--paper);box-shadow:inset 0 0 0 2px var(--line);transition:background .3s}
+.steps i.ok{background:var(--good);box-shadow:none}
+.steps i.ko{background:var(--oops);box-shadow:none}
+.steps i.now{background:var(--c1);box-shadow:inset 0 0 0 3px var(--c2)}
+.qcard{background:var(--paper);border-radius:34px;padding:26px 28px;box-shadow:0 8px 0 var(--c1);display:flex;flex-direction:column;gap:12px;position:relative}
+.qlabel{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:800;color:var(--c3);font-size:1.05rem;letter-spacing:.06em;text-transform:uppercase}
+.qtext{font-family:var(--display);font-weight:700;font-size:clamp(1.6rem,3.6vw,2.4rem);line-height:1.12;margin:0;text-wrap:balance}
+.qart{font-size:clamp(3rem,8vw,4.6rem);line-height:1;text-align:center;letter-spacing:.08em}
+.speak{width:56px;height:56px;border-radius:50%;background:var(--c1);display:grid;place-items:center;font-size:1.6rem;flex:none;box-shadow:0 4px 0 var(--c2)}
+.speak:active{transform:translateY(4px);box-shadow:none}
+.qhead{display:flex;gap:16px;align-items:flex-start;justify-content:space-between}
+.choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.choices.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+.choice{background:var(--paper);border-radius:24px;padding:20px 18px;min-height:128px;display:flex;align-items:center;gap:14px;
+  font-family:var(--display);font-weight:700;font-size:clamp(1.2rem,2.6vw,1.6rem);line-height:1.1;text-align:left;
+  box-shadow:0 var(--press) 0 var(--line),inset 0 0 0 3px var(--line);transition:transform .08s,box-shadow .08s,background .2s}
+.choice .em{font-size:2.3rem;line-height:1;flex:none}
+.choice:active{transform:translateY(var(--press));box-shadow:0 0 0 var(--line),inset 0 0 0 3px var(--line)}
+.choice.big{flex-direction:column;justify-content:center;text-align:center;min-height:190px}
+.choice.big .em{font-size:3.4rem}
+.choice.right{background:var(--good-bg);box-shadow:0 var(--press) 0 var(--good),inset 0 0 0 4px var(--good);animation:pop .45s}
+.choice.wrong{background:var(--oops-bg);box-shadow:0 var(--press) 0 var(--oops),inset 0 0 0 4px var(--oops);animation:shake .45s}
+.choice.dim{opacity:.45}
+@keyframes pop{40%{transform:scale(1.06)}}
+@keyframes shake{20%,60%{transform:translateX(-10px)}40%,80%{transform:translateX(10px)}}
+.numpad-wrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:20px;align-items:start}
+.numdisplay{background:var(--paper);border-radius:24px;min-height:120px;display:grid;place-items:center;font-family:var(--display);font-weight:800;
+  font-size:4rem;box-shadow:inset 0 0 0 4px var(--c1);font-variant-numeric:tabular-nums}
+.numdisplay.empty{color:var(--line)}
+.numdisplay.right{background:var(--good-bg);box-shadow:inset 0 0 0 4px var(--good);animation:pop .45s}
+.numdisplay.wrong{background:var(--oops-bg);box-shadow:inset 0 0 0 4px var(--oops);animation:shake .45s}
+.hint{font-weight:700;color:var(--ink-soft);font-size:1.05rem;text-align:center;margin-top:10px}
+.numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.key{height:70px;border-radius:20px;background:var(--paper);font-family:var(--display);font-weight:800;font-size:2rem;box-shadow:0 5px 0 var(--line),inset 0 0 0 3px var(--line)}
+.key:active{transform:translateY(5px);box-shadow:inset 0 0 0 3px var(--line)}
+.key.ok{background:var(--good);color:#fff;box-shadow:0 5px 0 #168A60}
+.key.ok:active{box-shadow:none}
+
+/* Feuille de réponse */
+.sheet-back{position:fixed;inset:0;background:rgba(30,42,71,.28);display:flex;align-items:flex-end;justify-content:center;z-index:20;animation:fade .25s both}
+@keyframes fade{from{opacity:0}}
+.sheet{width:min(860px,100%);background:var(--paper);border-radius:34px 34px 0 0;padding:24px max(24px,env(safe-area-inset-left,0px)) calc(26px + env(safe-area-inset-bottom,0px));
+  display:flex;flex-direction:column;gap:14px;animation:up .4s cubic-bezier(.2,.9,.3,1.15) both;border-top:10px solid var(--fb)}
+@keyframes up{from{transform:translateY(100%)}}
+.sheet h2{font-family:var(--display);font-weight:800;font-size:2.1rem;margin:0;color:var(--fb);display:flex;align-items:center;gap:12px}
+.sheet .answer{font-family:var(--display);font-weight:700;font-size:1.35rem}
+.fact{display:flex;gap:14px;align-items:flex-start;background:var(--bg);border-radius:22px;padding:16px 18px}
+.fact .bulb{font-size:2rem;line-height:1}
+.fact b{display:block;font-family:var(--display);font-size:1.05rem;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft)}
+.fact p{margin:2px 0 0;font-size:1.25rem;font-weight:700;line-height:1.35}
+.sheet .row{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+
+/* Résultat */
+.result{display:flex;flex-direction:column;align-items:center;text-align:center;gap:14px;padding-top:10px}
+.medal{width:190px;height:190px;animation:medal 1s cubic-bezier(.2,.9,.3,1.4) both}
+@keyframes medal{from{transform:scale(0) rotate(-40deg)}}
+.result h1{font-family:var(--display);font-weight:800;font-size:clamp(2.2rem,5vw,3.2rem);line-height:1;margin:0;text-wrap:balance}
+.result .score{font-size:1.4rem;font-weight:800;color:var(--ink-soft)}
+.bigstars{display:flex;gap:10px}
+.bigstars svg{width:70px;height:70px;opacity:0;animation:starin .5s cubic-bezier(.2,.9,.3,1.6) both}
+@keyframes starin{from{opacity:0;transform:scale(0) rotate(-90deg)}to{opacity:1;transform:none}}
+.unlocks{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+.unlock{background:var(--paper);border-radius:22px;padding:12px 18px;font-weight:800;font-size:1.1rem;box-shadow:0 5px 0 var(--line);display:flex;align-items:center;gap:10px}
+.unlock .em{font-size:1.8rem}
+.result .actions{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-top:6px}
+.reward-btn{font-size:1.6rem;padding:18px 32px;animation:glow 1.6s ease-in-out infinite}
+@keyframes glow{50%{transform:scale(1.04)}}
+
+/* Vidéo */
+.video-box{background:var(--ink);border-radius:30px;overflow:hidden;aspect-ratio:16/9;max-width:100%;width:100%;box-shadow:0 8px 0 var(--c2)}
+.video-box iframe{width:100%;height:100%;border:0;display:block}
+.video-link{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;height:100%;color:#fff;text-decoration:none;
+  font-family:var(--display);font-weight:800;font-size:1.6rem;text-align:center;padding:20px}
+.video-link .play{width:110px;height:110px;border-radius:50%;background:var(--tomato);display:grid;place-items:center;box-shadow:0 8px 0 #C93A2D}
+.video-title{font-family:var(--display);font-weight:800;font-size:clamp(1.5rem,3.4vw,2.2rem);line-height:1.1;margin:0}
+.video-src{font-weight:700;color:var(--ink-soft)}
+
+/* Vestiaire */
+.locker{display:grid;grid-template-columns:minmax(200px,320px) 1fr;gap:26px;align-items:start}
+.panel{background:var(--paper);border-radius:30px;padding:20px 22px;box-shadow:0 8px 0 var(--line);display:flex;flex-direction:column;gap:14px}
+.panel h2{font-family:var(--display);font-weight:800;font-size:1.5rem;margin:0}
+.swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:12px}
+.swatch{border-radius:22px;padding:10px 6px;display:flex;flex-direction:column;align-items:center;gap:6px;font-weight:800;font-size:.85rem;color:var(--ink-soft);
+  box-shadow:inset 0 0 0 3px var(--line)}
+.swatch i{width:50px;height:50px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:1.7rem}
+.swatch.on{box-shadow:inset 0 0 0 4px var(--ink);color:var(--ink)}
+.swatch.locked{opacity:.55}
+.trophies{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:12px}
+.trophy{display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;font-weight:800;font-size:.85rem;color:var(--ink-soft)}
+.trophy svg{width:78px;height:78px}
+
+/* Coin des parents */
+.parent label{font-weight:800;display:block;margin-bottom:6px}
+.parent input[type=text],.parent input[type=number]{width:100%;font:inherit;font-size:1rem;padding:12px 14px;border-radius:14px;border:3px solid var(--line);background:var(--bg);color:var(--ink);-webkit-user-select:text;user-select:text}
+.parent .field{display:grid;grid-template-columns:44px 1fr;gap:10px;align-items:center}
+.parent .field .em{font-size:1.8rem}
+.toggle{display:flex;align-items:center;gap:12px;font-weight:800}
+.toggle input{width:28px;height:28px}
+.note{color:var(--ink-soft);font-weight:700;font-size:.95rem;line-height:1.4;margin:0}
+.danger{background:var(--tomato);box-shadow:0 var(--press) 0 #C93A2D}
+.danger:active{box-shadow:none}
+.gate{display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center;max-width:460px;margin:40px auto 0}
+.gate h1{font-family:var(--display);font-weight:800;font-size:2rem;margin:0}
+.gate .q{font-family:var(--display);font-weight:800;font-size:2.6rem}
+
+/* Confettis & étoile volante */
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:40}
+.fly-star{position:fixed;width:54px;height:54px;z-index:45;pointer-events:none;transition:transform .9s cubic-bezier(.5,-.3,.6,1),opacity .9s}
+.toast{position:fixed;left:50%;top:calc(18px + env(safe-area-inset-top,0px));transform:translateX(-50%);background:var(--ink);color:#fff;font-weight:800;
+  padding:12px 22px;border-radius:999px;z-index:50;font-size:1.1rem;animation:fade .3s both}
+
+@media (max-width:700px){
+  .hero-card{grid-template-columns:1fr;text-align:center;justify-items:center}
+  .meter{margin-inline:auto}
+  .hero-actions{justify-content:center}
+  .choices,.choices.three{grid-template-columns:1fr}
+  .numpad-wrap{grid-template-columns:1fr}
+  .locker{grid-template-columns:1fr}
+  .qcard{padding:20px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+</style>
+
+<div id="app"></div>
+<canvas id="confetti"></canvas>
+
+<script>
+(() => {
+"use strict";
+
+/* ---------- Contenu pédagogique ---------- */
+// type : "qcm" (choix, a = index de la bonne réponse), "vf" (vrai/faux, a = true/false), "num" (nombre à taper)
+const CHAPTERS = [
+ { id:"dinos", title:"Les dinosaures", sub:"Géants de la préhistoire", em:"🦖", c1:"#C9F2DF", c2:"#2EC99A", c3:"#13865F",
+   video:{ id:"ClRM6DELlV8", title:"Pourquoi les dinosaures ont disparu ?", src:"1 jour, 1 question" },
+   qs:[
+   {t:"qcm", q:"Quel dinosaure avait 3 cornes sur la tête ?", art:"❓🦴❓", c:[["🦏","Le tricératops"],["🦖","Le T-Rex"],["🦕","Le diplodocus"]], a:0,
+    f:"« Tri », ça veut dire 3. Tri-cératops = la tête à 3 cornes !"},
+   {t:"qcm", q:"Les dinosaures ont disparu il y a combien de temps ?", c:[["⏳","66 millions d'années"],["🎂","100 ans"],["🏰","2 000 ans"]], a:0,
+    f:"Une énorme météorite est tombée sur la Terre il y a 66 millions d'années. Aucun humain n'a jamais vu de dinosaure vivant !"},
+   {t:"num", q:"Une dent de T-Rex pouvait mesurer 30 cm. Combien de centimètres pour 2 dents ?", art:"🦷 + 🦷", a:60, h:"30 + 30",
+    f:"Avec sa racine, une dent de T-Rex était plus longue qu'une banane !"},
+   {t:"qcm", q:"Quel dinosaure mangeait seulement des plantes ?", c:[["🦕","Le diplodocus"],["🦖","Le T-Rex"],["🦎","Le vélociraptor"]], a:0,
+    f:"Avec son très long cou, le diplodocus attrapait les feuilles tout en haut des arbres."},
+   {t:"vf", q:"Les oiseaux sont des cousins des dinosaures.", art:"🐦 = 🦖 ?", a:true,
+    f:"C'est vrai ! Les oiseaux descendent de petits dinosaures à plumes. Le pigeon du jardin est un dinosaure !"},
+   {t:"num", q:"Un tricératops a 3 cornes. Combien de cornes pour 4 tricératops ?", art:"🦏🦏🦏🦏", a:12, h:"3 + 3 + 3 + 3",
+    f:"Bravo, tu viens de faire une multiplication : 4 fois 3, ça fait 12."},
+   {t:"qcm", q:"Comment s'appelle le savant qui étudie les fossiles de dinosaures ?", c:[["🦴","Paléontologue"],["🧑‍🚀","Astronaute"],["🥖","Boulanger"]], a:0,
+    f:"Le paléontologue creuse avec des pinceaux et des petites pelles pour ne rien casser."},
+   {t:"qcm", q:"Lequel était le plus long ?", c:[["🦕","Le diplodocus"],["🦖","Le T-Rex"]], a:0, big:true,
+    f:"Le diplodocus mesurait environ 26 mètres : plus long que 2 bus mis bout à bout. Le T-Rex, lui, faisait 12 mètres."}
+ ]},
+ { id:"ocean", title:"Les océans", sub:"Plongée dans le grand bleu", em:"🐳", c1:"#CFE6FF", c2:"#3E9BFF", c3:"#1F6FCC",
+   video:{ id:"7iyzKyVzajU", title:"Est-ce que les baleines sont menacées ?", src:"1 jour, 1 question" },
+   qs:[
+   {t:"qcm", q:"Quel est le plus gros animal du monde ?", c:[["🐋","La baleine bleue"],["🐘","L'éléphant"],["🦈","Le requin blanc"]], a:0,
+    f:"La baleine bleue peut mesurer 30 mètres et peser plus lourd que 20 éléphants. C'est le plus gros animal de tous les temps !"},
+   {t:"vf", q:"L'eau de mer est salée.", art:"🌊🧂", a:true, f:"Oui ! Si on faisait sécher un litre d'eau de mer, il resterait environ une grosse cuillère de sel."},
+   {t:"qcm", q:"Combien de bras a une pieuvre ?", art:"🐙", c:[["8️⃣","8 bras"],["6️⃣","6 bras"],["🔟","10 bras"]], a:0,
+    f:"8 bras couverts de ventouses ! Et chaque bras peut toucher et goûter."},
+   {t:"num", q:"Une pieuvre a 3 cœurs. Combien de cœurs pour 2 pieuvres ?", art:"🐙🐙", a:6, h:"3 + 3",
+    f:"3 cœurs… et son sang est bleu ! C'est un vrai super-héros des mers."},
+   {t:"qcm", q:"Lequel de ces animaux n'est PAS un poisson ?", c:[["🐬","Le dauphin"],["🦈","Le requin"],["🐠","Le poisson-clown"]], a:0,
+    f:"Le dauphin est un mammifère, comme toi : il remonte à la surface pour respirer de l'air."},
+   {t:"qcm", q:"Où se cache le poisson-clown ?", art:"🐠", c:[["🪸","Dans une anémone"],["🐚","Dans un coquillage"],["🏖️","Dans le sable"]], a:0,
+    f:"L'anémone pique les autres poissons, mais pas le poisson-clown : il est protégé par une couche de mucus."},
+   {t:"qcm", q:"Sur la Terre, il y a plus de…", c:[["🌊","Mer et océans"],["⛰️","Terre ferme"]], a:0, big:true,
+    f:"Les océans couvrent environ 7 parts sur 10 de la Terre. C'est pour ça qu'on l'appelle la planète bleue !"},
+   {t:"num", q:"Quand elle plonge, le cœur de la baleine bleue bat seulement 2 fois par minute. Combien de battements en 5 minutes ?", art:"💙", a:10, h:"2 + 2 + 2 + 2 + 2",
+    f:"Ton cœur à toi bat environ 90 fois par minute. Celui de la baleine est très, très lent quand elle plonge."}
+ ]},
+ { id:"etoiles", title:"Étoiles et planètes", sub:"Voyage dans le ciel", em:"🪐", c1:"#E3DEFF", c2:"#8C7CFF", c3:"#5B49D6",
+   video:{ id:"VHdVc9x_-Qs", title:"C'est quoi une étoile ?", src:"1 jour, 1 question" },
+   qs:[
+   {t:"qcm", q:"Le Soleil, c'est…", art:"☀️", c:[["⭐","Une étoile"],["🪐","Une planète"],["🌙","Une lune"]], a:0,
+    f:"Le Soleil est une étoile, comme celles que tu vois la nuit. Elle est juste beaucoup plus près de nous."},
+   {t:"num", q:"Combien de planètes tournent autour du Soleil ?", art:"☀️🪐", a:8,
+    f:"Mercure, Vénus, la Terre, Mars, Jupiter, Saturne, Uranus et Neptune : 8 planètes !"},
+   {t:"qcm", q:"Quelle est la plus grosse planète ?", c:[["🟠","Jupiter"],["🌍","La Terre"],["🔴","Mars"]], a:0,
+    f:"On pourrait ranger plus de 1 000 Terres dans Jupiter !"},
+   {t:"qcm", q:"Quelle planète est toute rouge ?", c:[["🔴","Mars"],["🟡","Vénus"],["🔵","Neptune"]], a:0,
+    f:"Le sol de Mars est plein de rouille : c'est ce qui lui donne sa couleur rouge."},
+   {t:"vf", q:"La Lune fabrique sa propre lumière.", art:"🌕", a:false,
+    f:"Faux ! La Lune renvoie la lumière du Soleil, comme un grand miroir dans le ciel."},
+   {t:"qcm", q:"Comment s'appelle notre galaxie ?", art:"🌌", c:[["🥛","La Voie lactée"],["🐻","La Grande Ourse"],["💥","Le Big Bang"]], a:0,
+    f:"Notre galaxie contient plus de 100 milliards d'étoiles. Le Soleil n'est que l'une d'elles !"},
+   {t:"num", q:"Jupiter, Saturne, Uranus et Neptune ont toutes des anneaux. Combien de planètes à anneaux ?", art:"🪐🪐🪐🪐", a:4,
+    f:"Les anneaux de Saturne sont les plus beaux : ils sont faits de milliards de morceaux de glace."},
+   {t:"qcm", q:"Combien de temps met la lumière du Soleil pour arriver jusqu'à nous ?", c:[["⏱️","8 minutes"],["⚡","1 seconde"],["📅","1 an"]], a:0,
+    f:"La lumière est la chose la plus rapide de l'Univers, mais le Soleil est si loin qu'il lui faut 8 minutes."}
+ ]},
+ { id:"astro", title:"Les héros de l'espace", sub:"Fusées et astronautes", em:"🚀", c1:"#FFD9D4", c2:"#FF5D4E", c3:"#C93A2D",
+   video:{ id:"z5xQlMwIvW4", title:"Comment on a réussi à aller sur la Lune ?", src:"1 jour, 1 question" },
+   qs:[
+   {t:"qcm", q:"Qui a marché le premier sur la Lune ?", art:"🌕👣", c:[["🇺🇸","Neil Armstrong"],["🇫🇷","Thomas Pesquet"],["⛵","Christophe Colomb"]], a:0,
+    f:"C'était en 1969. Ses traces de pas sont toujours sur la Lune, car il n'y a pas de vent pour les effacer."},
+   {t:"num", q:"Dans la station spatiale, on voit 16 levers de soleil par jour ! Combien en 2 jours ?", art:"🛰️🌅", a:32, h:"16 + 16",
+    f:"La station fait le tour de la Terre en 1 heure et demie. Ça fait 16 tours par jour !"},
+   {t:"qcm", q:"Quel astronaute français est allé 2 fois dans la station spatiale ?", c:[["🧑‍🚀","Thomas Pesquet"],["🎨","Claude Monet"],["⚽","Kylian Mbappé"]], a:0,
+    f:"Thomas Pesquet y est allé en 2016 puis en 2021. Il a même joué du saxophone dans l'espace !"},
+   {t:"vf", q:"Dans la station spatiale, tout flotte.", art:"🧑‍🚀🎈", a:true,
+    f:"Vrai ! Pour dormir, les astronautes attachent leur sac de couchage au mur."},
+   {t:"qcm", q:"Combien de temps dure le voyage de la Terre à la Lune ?", c:[["📆","3 jours"],["⏰","3 heures"],["🗓️","3 ans"]], a:0,
+    f:"Les astronautes d'Apollo ont mis environ 3 jours pour rejoindre la Lune."},
+   {t:"qcm", q:"Pourquoi les astronautes portent un scaphandre ?", c:[["🫁","Pour respirer et se protéger"],["😎","Pour être beaux"],["🏊","Pour nager"]], a:0,
+    f:"Dans l'espace, il n'y a pas d'air et il fait soit très chaud, soit très froid. Le scaphandre est une mini-maison !"},
+   {t:"num", q:"Une fusée Ariane 6 peut avoir 4 boosters. Combien de boosters pour 2 fusées ?", art:"🚀🚀", a:8, h:"4 + 4",
+    f:"Ariane 6 est la fusée de l'Europe. Elle décolle de Kourou, en Guyane."},
+   {t:"qcm", q:"Sur la Lune, tu serais…", art:"🌕⚖️", c:[["🪶","6 fois plus léger"],["🪨","6 fois plus lourd"],["🟰","Pareil"]], a:0,
+    f:"Toi qui pèses 25 kg, sur la Lune la balance afficherait environ 4 kg ! Tu pourrais faire des sauts géants."}
+ ]},
+ { id:"chevaliers", title:"Chevaliers et dragons", sub:"Le temps des châteaux forts", em:"🐉", c1:"#FFEBB5", c2:"#FFC536", c3:"#B07F00",
+   video:{ id:"xDYTrtPfXrU", title:"L'assaut des châteaux forts", src:"Lumni" },
+   qs:[
+   {t:"qcm", q:"Où vivait le seigneur au Moyen Âge ?", c:[["🏰","Dans un château fort"],["🛖","Dans une cabane"],["🧊","Dans un igloo"]], a:0,
+    f:"Le château fort protégeait le seigneur, sa famille et les gens du village en cas d'attaque."},
+   {t:"qcm", q:"Comment s'appelle le fossé plein d'eau autour du château ?", art:"🏰💧", c:[["🌊","Les douves"],["🏊","La piscine"],["🗼","Le donjon"]], a:0,
+    f:"Pour traverser les douves, on baissait le pont-levis. Pour se protéger, on le remontait !"},
+   {t:"qcm", q:"Quelle est la plus grande tour du château ?", c:[["🗼","Le donjon"],["🌉","Le pont-levis"],["🧱","Les remparts"]], a:0,
+    f:"Le donjon était la tour la plus haute et la plus solide. C'était le dernier refuge."},
+   {t:"vf", q:"Les dragons ont vraiment existé.", art:"🐉❓", a:false,
+    f:"Faux, ce sont des légendes… Mais le dragon de Komodo existe : c'est un lézard géant de 3 mètres !"},
+   {t:"num", q:"Une armure de chevalier pesait jusqu'à 25 kg, autant que toi ! Combien de kilos pour 2 armures ?", art:"🛡️🛡️", a:50, h:"25 + 25",
+    f:"Tu imagines courir avec ton propre poids sur le dos ? Les chevaliers s'entraînaient depuis l'enfance."},
+   {t:"qcm", q:"Avant de devenir chevalier, un garçon était…", c:[["🛡️","Écuyer"],["🏴‍☠️","Pirate"],["🧑‍🚀","Astronaute"]], a:0,
+    f:"L'écuyer s'occupait du cheval et des armes de son chevalier, et apprenait le métier avec lui."},
+   {t:"qcm", q:"Dans les légendes, que crache le dragon ?", art:"🐉", c:[["🔥","Du feu"],["🍫","Du chocolat"],["🫧","Des bulles"]], a:0,
+    f:"Dans beaucoup d'histoires, c'est un chevalier courageux qui affronte le dragon. Comme toi, Marcel !"},
+   {t:"num", q:"Un château a 4 tours, avec 3 gardes dans chaque tour. Combien de gardes en tout ?", art:"🏰💂", a:12, h:"3 + 3 + 3 + 3",
+    f:"Les gardes surveillaient les alentours jour et nuit depuis le haut des tours."}
+ ]},
+ { id:"pouvoirs", title:"Super-pouvoirs des animaux", sub:"Les vrais super-héros", em:"⚡", c1:"#FFE0F0", c2:"#FF6FB1", c3:"#C73E80",
+   video:{ id:"NeBKbJ-4TOA", title:"5 animaux avec des super-pouvoirs", src:"Jamy, Épicurieux" },
+   qs:[
+   {t:"qcm", q:"Quel est l'animal le plus rapide sur terre ?", c:[["🐆","Le guépard"],["🦁","Le lion"],["🐎","Le cheval"]], a:0,
+    f:"Le guépard peut dépasser 100 km/h en quelques secondes : presque aussi vite qu'une voiture sur l'autoroute !"},
+   {t:"qcm", q:"Quel animal peut changer de couleur ?", c:[["🦎","Le caméléon"],["🦓","Le zèbre"],["🐻","L'ours"]], a:0,
+    f:"Le caméléon change de couleur pour montrer s'il est calme, en colère ou amoureux."},
+   {t:"qcm", q:"Comment la chauve-souris trouve son chemin dans le noir ?", art:"🦇🌙", c:[["🔊","Avec l'écho de ses cris"],["🔦","Avec une lampe"],["👃","Avec son nez"]], a:0,
+    f:"Elle pousse des cris très aigus et écoute l'écho qui revient. C'est un super-pouvoir qui s'appelle l'écholocation !"},
+   {t:"vf", q:"Une fourmi peut porter bien plus lourd qu'elle.", art:"🐜💪", a:true,
+    f:"Vrai ! Jusqu'à 50 fois son poids. Pour toi, ce serait comme soulever une voiture !"},
+   {t:"num", q:"Une araignée a 8 pattes. Combien de pattes pour 3 araignées ?", art:"🕷️🕷️🕷️", a:24, h:"8 + 8 + 8",
+    f:"Et la plupart des araignées ont aussi 8 yeux !"},
+   {t:"qcm", q:"Quel animal peut faire repousser sa queue ?", c:[["🦎","Le lézard"],["🐕","Le chien"],["🐟","Le poisson rouge"]], a:0,
+    f:"Quand un prédateur l'attrape, le lézard lâche sa queue et s'enfuit. Une nouvelle queue repousse ensuite."},
+   {t:"qcm", q:"Quel oiseau peut voler en marche arrière ?", c:[["🐦","Le colibri"],["🦤","L'autruche"],["🐧","Le pingouin"]], a:0,
+    f:"Le colibri bat des ailes si vite qu'on les voit à peine. Il peut aussi faire du sur-place devant une fleur."},
+   {t:"num", q:"Un kangourou peut sauter 9 mètres d'un coup ! Toi, tu sautes environ 1 mètre. Combien de tes sauts pour faire un saut de kangourou ?", art:"🦘", a:9,
+    f:"Le kangourou se sert de sa grosse queue comme d'un ressort et d'un balancier."}
+ ]},
+ { id:"terre", title:"Volcans et planète Terre", sub:"Le feu sous nos pieds", em:"🌋", c1:"#FFE1C9", c2:"#FF8A3D", c3:"#C25A12",
+   video:{ id:"RP8QQEMFqps", title:"Pourquoi les volcans entrent-ils en éruption ?", src:"1 jour, 1 question" },
+   qs:[
+   {t:"qcm", q:"Comment s'appelle la roche fondue qui sort du volcan ?", art:"🌋", c:[["🔥","La lave"],["❄️","La neige"],["🏖️","Le sable"]], a:0,
+    f:"La lave est si chaude (plus de 1 000 °C) qu'elle brille en rouge et orange."},
+   {t:"qcm", q:"Au centre de la Terre, il fait…", art:"🌍🔎", c:[["🥵","Très très chaud"],["🥶","Très froid"],["🙂","Tiède"]], a:0,
+    f:"Plus de 5 000 °C : presque aussi chaud que la surface du Soleil !"},
+   {t:"vf", q:"Il y a des volcans en France.", art:"🇫🇷🌋", a:true,
+    f:"Vrai ! En Auvergne, la chaîne des Puys compte environ 80 volcans endormis. Et à La Réunion, le Piton de la Fournaise est bien réveillé !"},
+   {t:"qcm", q:"Quelle est la plus haute montagne du monde ?", art:"🏔️", c:[["🏔️","L'Everest"],["⛰️","Le mont Blanc"],["🗻","Le mont Fuji"]], a:0,
+    f:"L'Everest mesure 8 849 mètres. Il faudrait empiler plus de 7 000 Marcel pour atteindre le sommet !"},
+   {t:"num", q:"La Terre fait un tour sur elle-même en combien d'heures ?", art:"🌍🔄", a:24,
+    f:"24 heures, c'est une journée et une nuit. C'est pour ça que le Soleil se lève et se couche."},
+   {t:"qcm", q:"Un volcan qui crache de la lave est…", c:[["💥","En éruption"],["😴","Endormi"],["🏖️","En vacances"]], a:0,
+    f:"Les volcanologues surveillent les volcans avec des appareils pour prévenir les gens avant une éruption."},
+   {t:"num", q:"Il y a 7 continents. Si tu en visites 2, combien t'en reste-t-il à découvrir ?", art:"🗺️✈️", a:5, h:"7 − 2",
+    f:"L'Afrique, l'Amérique du Nord, l'Amérique du Sud, l'Antarctique, l'Asie, l'Europe et l'Océanie."},
+   {t:"qcm", q:"Combien de temps met la Terre pour faire le tour du Soleil ?", art:"🌍☀️", c:[["🎂","1 an"],["🌙","1 jour"],["📅","1 semaine"]], a:0,
+    f:"À chaque anniversaire, tu as fait un tour complet autour du Soleil. Tu en as déjà fait 6 !"}
+ ]}
+];
+const Q_PER = 8;
+const RANKS = [
+  {min:0, name:"Apprenti curieux"}, {min:10, name:"Explorateur"}, {min:22, name:"Aventurier"},
+  {min:35, name:"Super-Qurieux"}, {min:50, name:"Légende de Qurieux"}
+];
+const CAPES = [
+  {c:"#FF5D4E", name:"Rouge", need:0}, {c:"#3E9BFF", name:"Bleue", need:6}, {c:"#2EC99A", name:"Verte", need:14},
+  {c:"#8C7CFF", name:"Violette", need:24}, {c:"#FF6FB1", name:"Rose", need:34}, {c:"#FFC536", name:"Dorée", need:46}
+];
+const PRAISE = ["Bravo Marcel !","Super, héros !","Génial !","Tu es trop fort !","Exactement !","Waouh, bien joué !","Mission réussie !"];
+const OOPS = ["Presque !","Pas tout à fait…","Bien essayé !","Oups, raté de peu !"];
+
+/* ---------- Sauvegarde ---------- */
+const KEY = "qurieux.v1";
+const DEF = { best:{}, cape:"#FF5D4E", emblem:"⭐", autoRead:false, sound:true, videos:{}, plays:0 };
+let S = load();
+function load(){ try{ const r = JSON.parse(localStorage.getItem(KEY)||"null"); return Object.assign({}, DEF, r||{}); }catch(e){ return Object.assign({}, DEF); } }
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
+const totalStars = () => CHAPTERS.reduce((n,ch)=>n+(S.best[ch.id]||0),0);
+const rankOf = n => { let r=RANKS[0]; RANKS.forEach(x=>{ if(n>=x.min) r=x; }); return r; };
+const nextRank = n => RANKS.find(x=>x.min>n);
+const medalOf = s => s>=7?"or":s>=5?"argent":s>=1?"bronze":null;
+const chapterStars = s => s>=7?3:s>=5?2:s>=1?1:0;
+
+/* ---------- Petits dessins ---------- */
+const STAR = (on=true) => `<svg viewBox="0 0 24 24" aria-hidden="true" class="star"><path d="M12 2.6l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.4l-5.8 3.1 1.1-6.5L2.6 9.4l6.5-.9z" fill="${on?"#FFC536":"#E3E9F2"}" stroke="${on?"#E5A400":"#D0D9E6"}" stroke-width="1.6" stroke-linejoin="round"/></svg>`;
+
+function logoSVG(){
+  return `<svg viewBox="0 0 300 110" role="img" aria-label="Qurieux : Q, riz, œufs">
+   <text x="8" y="88" font-family="'Baloo 2',sans-serif" font-weight="800" font-size="104" fill="#1E2A47">Q</text>
+   <g transform="translate(92 14)">
+     <circle cx="22" cy="48" r="13" fill="#fff" stroke="#1E2A47" stroke-width="4"/>
+     <circle cx="40" cy="38" r="16" fill="#fff" stroke="#1E2A47" stroke-width="4"/>
+     <circle cx="60" cy="40" r="15" fill="#fff" stroke="#1E2A47" stroke-width="4"/>
+     <circle cx="76" cy="50" r="11" fill="#fff" stroke="#1E2A47" stroke-width="4"/>
+     <rect x="14" y="44" width="68" height="16" fill="#fff"/>
+     <path d="M34 34l3 3M50 30l2 4M62 38l-2 3M44 44l3 2M70 46l2 3M26 46l3-2" stroke="#C9D3E3" stroke-width="3" stroke-linecap="round"/>
+     <path d="M4 56h88a44 38 0 0 1-88 0z" fill="#FF5D4E" stroke="#1E2A47" stroke-width="4.5" stroke-linejoin="round"/>
+     <path d="M14 70h68" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".85"/>
+     <path d="M36 92h24" stroke="#1E2A47" stroke-width="4.5" stroke-linecap="round"/>
+   </g>
+   <g transform="translate(198 18)">
+     <ellipse cx="28" cy="48" rx="24" ry="31" fill="#FFF4E0" stroke="#1E2A47" stroke-width="4.5" transform="rotate(-10 28 48)"/>
+     <ellipse cx="20" cy="36" rx="5" ry="9" fill="#fff" transform="rotate(-10 20 36)"/>
+     <ellipse cx="72" cy="54" rx="22" ry="28" fill="#FFE7BF" stroke="#1E2A47" stroke-width="4.5" transform="rotate(12 72 54)"/>
+     <ellipse cx="66" cy="43" rx="4.5" ry="8" fill="#fff" transform="rotate(12 66 43)"/>
+   </g>
+  </svg>`;
+}
+
+function heroSVG(cape=S.cape, emblem=S.emblem, cls="hero-svg"){
+  return `<svg viewBox="0 0 220 260" class="${cls}" role="img" aria-label="Marcel en super-héros">
+   <ellipse cx="110" cy="248" rx="62" ry="9" fill="#1E2A47" opacity=".08"/>
+   <path d="M70 104 Q110 90 150 104 L182 226 Q110 246 38 226 Z" fill="${cape}" stroke="#1E2A47" stroke-width="5" stroke-linejoin="round"/>
+   <rect x="80" y="196" width="24" height="44" rx="12" fill="#2C3E73" stroke="#1E2A47" stroke-width="5"/>
+   <rect x="116" y="196" width="24" height="44" rx="12" fill="#2C3E73" stroke="#1E2A47" stroke-width="5"/>
+   <path d="M74 238h34M112 238h34" stroke="${cape}" stroke-width="9" stroke-linecap="round"/>
+   <g transform="rotate(-38 82 120)"><rect x="54" y="112" width="22" height="64" rx="11" fill="#3E5BA9" stroke="#1E2A47" stroke-width="5"/><circle cx="65" cy="178" r="12" fill="#FFD7B8" stroke="#1E2A47" stroke-width="5"/></g>
+   <rect x="144" y="114" width="22" height="58" rx="11" fill="#3E5BA9" stroke="#1E2A47" stroke-width="5" transform="rotate(14 155 120)"/>
+   <circle cx="163" cy="174" r="12" fill="#FFD7B8" stroke="#1E2A47" stroke-width="5"/>
+   <rect x="74" y="100" width="72" height="104" rx="30" fill="#3E5BA9" stroke="#1E2A47" stroke-width="5"/>
+   <rect x="76" y="176" width="68" height="12" fill="#FFC536" stroke="#1E2A47" stroke-width="4"/>
+   <circle cx="110" cy="140" r="22" fill="#fff" stroke="#1E2A47" stroke-width="5"/>
+   <text x="110" y="151" text-anchor="middle" font-size="26">${emblem}</text>
+   <circle cx="110" cy="64" r="44" fill="#FFD7B8" stroke="#1E2A47" stroke-width="5"/>
+   <path d="M66 62 Q64 18 110 18 Q156 18 154 60 Q146 40 126 40 Q120 30 108 36 Q92 30 86 44 Q74 46 66 62Z" fill="#6B4226" stroke="#1E2A47" stroke-width="5" stroke-linejoin="round"/>
+   <rect x="72" y="56" width="76" height="22" rx="11" fill="${cape}" stroke="#1E2A47" stroke-width="4.5"/>
+   <path d="M72 64 L56 58 M72 70 L58 76" stroke="${cape}" stroke-width="6" stroke-linecap="round"/>
+   <ellipse cx="94" cy="67" rx="9" ry="7.5" fill="#fff"/><ellipse cx="126" cy="67" rx="9" ry="7.5" fill="#fff"/>
+   <circle cx="96" cy="68" r="4.5" fill="#1E2A47"/><circle cx="128" cy="68" r="4.5" fill="#1E2A47"/>
+   <circle cx="84" cy="88" r="7" fill="#FF9C8F" opacity=".55"/><circle cx="136" cy="88" r="7" fill="#FF9C8F" opacity=".55"/>
+   <path d="M98 88 Q110 100 122 88" fill="none" stroke="#1E2A47" stroke-width="4.5" stroke-linecap="round"/>
+  </svg>`;
+}
+
+function medalSVG(kind, em, cls="medal"){
+  const pal = {or:["#FFC536","#E5A400"], argent:["#DDE4EE","#A8B3C4"], bronze:["#F2B27E","#C97A3E"], none:["#EEF2F7","#D6E0EE"]}[kind||"none"];
+  return `<svg viewBox="0 0 120 130" class="${cls}" aria-hidden="true">
+   <path d="M38 4h18l10 40H48zM82 4H64L54 44h18z" fill="${kind?"#3E9BFF":"#D6E0EE"}" stroke="#1E2A47" stroke-width="4" stroke-linejoin="round"/>
+   <circle cx="60" cy="80" r="44" fill="${pal[0]}" stroke="#1E2A47" stroke-width="5"/>
+   <circle cx="60" cy="80" r="33" fill="none" stroke="${pal[1]}" stroke-width="5" stroke-dasharray="4 6"/>
+   <text x="60" y="94" text-anchor="middle" font-size="38" ${kind?"":'opacity=".35"'}>${em}</text>
+  </svg>`;
+}
+
+/* ---------- Sons (synthèse, aucun fichier) ---------- */
+let AC = null;
+function ac(){ if(!S.sound) return null; try{ AC = AC || new (window.AudioContext||window.webkitAudioContext)(); if(AC.state==="suspended") AC.resume(); return AC; }catch(e){ return null; } }
+function tone(freq, start, dur, type="sine", vol=.18){
+  const a = ac(); if(!a) return;
+  const o = a.createOscillator(), g = a.createGain(), t = a.currentTime + start;
+  o.type = type; o.frequency.setValueAtTime(freq, t);
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t+.02); g.gain.exponentialRampToValueAtTime(.001, t+dur);
+  o.connect(g); g.connect(a.destination); o.start(t); o.stop(t+dur+.05);
+}
+const sfx = {
+  tap(){ tone(660,0,.08,"triangle",.08); },
+  good(){ [523,659,784,1047].forEach((f,i)=>tone(f,i*.08,.3,"triangle",.16)); },
+  bad(){ tone(330,0,.22,"sine",.14); tone(262,.16,.32,"sine",.12); },
+  fanfare(){ [523,523,659,784,659,784,1047].forEach((f,i)=>tone(f,i*.13,i===6?.7:.2,"square",.07)); }
+};
+
+/* ---------- Voix ---------- */
+function speak(text){
+  try{
+    if(!("speechSynthesis" in window)) return;
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text.replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}️]/gu,""));
+    u.lang = "fr-FR"; u.rate = .92;
+    const v = speechSynthesis.getVoices().find(v=>/^fr/i.test(v.lang));
+    if(v) u.voice = v;
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+
+/* ---------- Confettis ---------- */
+const cv = document.getElementById("confetti"), cx = cv.getContext("2d");
+let parts = [], raf = null;
+function confetti(n=140){
+  if(matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  cv.width = innerWidth*devicePixelRatio; cv.height = innerHeight*devicePixelRatio;
+  const cols = ["#FFC536","#FF5D4E","#2EC99A","#3E9BFF","#8C7CFF","#FF6FB1"];
+  for(let i=0;i<n;i++) parts.push({x:innerWidth/2+(Math.random()-.5)*200, y:innerHeight*.45, vx:(Math.random()-.5)*16, vy:-Math.random()*16-6,
+    s:6+Math.random()*8, r:Math.random()*6, vr:(Math.random()-.5)*.3, c:cols[i%cols.length], life:0, round:Math.random()<.3});
+  if(!raf) loop();
+}
+function loop(){
+  cx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+  cx.clearRect(0,0,innerWidth,innerHeight);
+  parts.forEach(p=>{ p.vy+=.45; p.vx*=.99; p.x+=p.vx; p.y+=p.vy; p.r+=p.vr; p.life++;
+    cx.save(); cx.translate(p.x,p.y); cx.rotate(p.r); cx.fillStyle=p.c;
+    if(p.round){ cx.beginPath(); cx.arc(0,0,p.s/2,0,7); cx.fill(); } else cx.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);
+    cx.restore(); });
+  parts = parts.filter(p=>p.y<innerHeight+40 && p.life<260);
+  raf = parts.length ? requestAnimationFrame(loop) : (cx.clearRect(0,0,innerWidth,innerHeight), null);
+}
+function flyStar(fromEl){
+  const target = document.querySelector("#runStars");
+  if(!fromEl || !target) return;
+  const a = fromEl.getBoundingClientRect(), b = target.getBoundingClientRect();
+  const s = document.createElement("div"); s.className="fly-star"; s.innerHTML = STAR(true);
+  s.style.left = (a.left+a.width/2-27)+"px"; s.style.top = (a.top+a.height/2-27)+"px";
+  document.body.appendChild(s);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    s.style.transform = `translate(${b.left+b.width/2-(a.left+a.width/2)}px,${b.top+b.height/2-(a.top+a.height/2)}px) scale(.5) rotate(200deg)`;
+    s.style.opacity = ".2";
+  }));
+  setTimeout(()=>{ s.remove(); target.classList.remove("bump"); void target.offsetWidth; }, 950);
+}
+function toast(msg){
+  const t = document.createElement("div"); t.className="toast"; t.textContent=msg; document.body.appendChild(t);
+  setTimeout(()=>t.remove(), 2200);
+}
+
+/* ---------- Navigation ---------- */
+const app = document.getElementById("app");
+const esc = s => String(s).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function show(html, vars){
+  try{ speechSynthesis.cancel(); }catch(e){}
+  const el = document.createElement("section"); el.className="screen"; el.innerHTML = html;
+  if(vars) Object.entries(vars).forEach(([k,v])=>el.style.setProperty(k,v));
+  app.replaceChildren(el); el.scrollTop = 0; return el;
+}
+const chVars = ch => ({"--c1":ch.c1,"--c2":ch.c2,"--c3":ch.c3});
+
+/* ---------- Accueil ---------- */
+function home(){
+  const n = totalStars(), r = rankOf(n), nx = nextRank(n);
+  const pct = nx ? Math.round((n-r.min)/(nx.min-r.min)*100) : 100;
+  const doneCount = CHAPTERS.filter(c=>S.best[c.id]).length;
+  const el = show(`<div class="wrap">
+    <div class="top">
+      <div class="logo">${logoSVG()}</div>
+      <div class="top-right">
+        <span class="pill" aria-label="${n} étoiles">${STAR()} ${n}</span>
+        <button class="icon-btn gear" id="gear" aria-label="Coin des parents (maintenir appuyé)">⚙️<svg class="ring" viewBox="0 0 60 60"><circle cx="30" cy="30" r="27"/></svg></button>
+      </div>
+    </div>
+    <div class="hero-card">
+      ${heroSVG()}
+      <div>
+        <h1 class="hello">Salut Marcel !</h1>
+        <div class="rank">Ton grade : <b>${r.name}</b></div>
+        <div class="meter" aria-hidden="true"><i style="width:${pct}%"></i></div>
+        <div class="meter-label">${nx ? `Encore ${nx.min-n} ⭐ pour devenir <b>${nx.name}</b>` : "Tu as atteint le grade suprême !"}</div>
+        <div class="hero-actions">
+          <button class="btn sun" id="goLocker">🦸 Mon héros</button>
+          ${doneCount<CHAPTERS.length ? `<button class="btn" id="goNext">▶ Mission suivante</button>` : ""}
+        </div>
+      </div>
+    </div>
+    <h2 class="section-title">La carte des missions <small>${doneCount} sur ${CHAPTERS.length} réussies</small></h2>
+    <div class="missions">
+      ${CHAPTERS.map((ch,i)=>{ const b=S.best[ch.id]||0, st=chapterStars(b), m=medalOf(b);
+        return `<button class="mission" data-ch="${i}" style="--c1:${ch.c1};--c2:${ch.c2}">
+          ${b ? `<span class="tag">${b}/${Q_PER}</span>` : `<span class="tag new">Nouveau !</span>`}
+          <span class="bubble">${ch.em}</span>
+          <h3>${ch.title}</h3>
+          <span class="sub">${ch.sub}</span>
+          <span class="stars" aria-label="${st} étoiles sur 3">${STAR(st>0)}${STAR(st>1)}${STAR(st>2)}</span>
+        </button>`; }).join("")}
+    </div>
+    <p class="rebus-hint" style="text-align:center;margin:4px 0 0">Q · riz · œufs = Qurieux</p>
+  </div>`);
+  el.querySelectorAll(".mission").forEach(b=>b.onclick=()=>{ sfx.tap(); quiz(+b.dataset.ch); });
+  el.querySelector("#goLocker").onclick=()=>{ sfx.tap(); locker(); };
+  const nb = el.querySelector("#goNext");
+  if(nb) nb.onclick=()=>{ sfx.tap(); quiz(CHAPTERS.findIndex(c=>!S.best[c.id])); };
+  parentGate(el.querySelector("#gear"));
+}
+
+/* ---------- Quiz ---------- */
+let R = null;
+function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function quiz(ci){
+  const ch = CHAPTERS[ci];
+  R = { ci, ch, i:0, good:0, res:[], qs: ch.qs.slice(0,Q_PER) };
+  question();
+}
+function question(){
+  const {ch, i, qs} = R, q = qs[i];
+  const steps = qs.map((_,k)=>`<i class="${R.res[k]===true?"ok":R.res[k]===false?"ko":k===i?"now":""}"></i>`).join("");
+  let body = "";
+  if(q.t==="qcm"){
+    const opts = shuffle(q.c.map((c,k)=>({em:c[0], txt:c[1], ok:k===q.a})));
+    R.opts = opts;
+    const cls = q.big ? "" : (opts.length===3 ? "three" : "");
+    body = `<div class="choices ${cls}">${opts.map((o,k)=>`<button class="choice ${q.big?"big":""}" data-k="${k}"><span class="em">${o.em}</span><span>${esc(o.txt)}</span></button>`).join("")}</div>`;
+  } else if(q.t==="vf"){
+    R.opts = [{em:"👍",txt:"Vrai",ok:q.a===true},{em:"👎",txt:"Faux",ok:q.a===false}];
+    body = `<div class="choices">${R.opts.map((o,k)=>`<button class="choice big" data-k="${k}"><span class="em">${o.em}</span><span>${o.txt}</span></button>`).join("")}</div>`;
+  } else {
+    R.typed = "";
+    body = `<div class="numpad-wrap">
+      <div><div class="numdisplay empty" id="nd">?</div>${q.h?`<p class="hint">Petit coup de pouce : ${esc(q.h)}</p>`:""}</div>
+      <div class="numpad">${[1,2,3,4,5,6,7,8,9].map(d=>`<button class="key" data-d="${d}">${d}</button>`).join("")}
+        <button class="key" data-d="del" aria-label="Effacer">⌫</button><button class="key" data-d="0">0</button><button class="key ok" data-d="ok" aria-label="Valider">✓</button></div>
+    </div>`;
+  }
+  const el = show(`<div class="wrap">
+    <div class="qtop">
+      <button class="icon-btn" id="quit" aria-label="Retour à la carte">✕</button>
+      <div class="steps" aria-label="Question ${i+1} sur ${qs.length}">${steps}</div>
+      <span class="pill" id="runStars">${STAR()} ${R.good}</span>
+    </div>
+    <div class="qcard">
+      <div class="qhead">
+        <div style="display:flex;flex-direction:column;gap:10px;min-width:0">
+          <span class="qlabel">${ch.em} ${esc(ch.title)} · question ${i+1}</span>
+          <h1 class="qtext">${esc(q.q)}</h1>
+        </div>
+        <button class="speak" id="say" aria-label="Lire la question à voix haute">🔊</button>
+      </div>
+      ${q.art?`<div class="qart" aria-hidden="true">${q.art}</div>`:""}
+    </div>
+    ${body}
+  </div>`, chVars(ch));
+  el.querySelector("#quit").onclick=()=>{ sfx.tap(); home(); };
+  const sayText = q.q + (q.t==="qcm"||q.t==="vf" ? " " + R.opts.map(o=>o.txt).join(" ? ") + " ?" : "");
+  el.querySelector("#say").onclick=()=>speak(sayText);
+  if(S.autoRead) setTimeout(()=>speak(sayText), 350);
+  if(q.t==="num"){
+    const nd = el.querySelector("#nd");
+    el.querySelectorAll(".key").forEach(k=>k.onclick=()=>{
+      if(R.locked) return;
+      const d = k.dataset.d; sfx.tap();
+      if(d==="del") R.typed = R.typed.slice(0,-1);
+      else if(d==="ok"){ if(R.typed!=="") answer(+R.typed===q.a, nd, String(q.a)); return; }
+      else if(R.typed.length<4) R.typed = (R.typed==="0"?"":R.typed) + d;
+      nd.textContent = R.typed || "?"; nd.classList.toggle("empty", !R.typed);
+    });
+  } else {
+    el.querySelectorAll(".choice").forEach(b=>b.onclick=()=>{
+      if(R.locked) return;
+      const o = R.opts[+b.dataset.k];
+      el.querySelectorAll(".choice").forEach((x,k)=>{
+        if(R.opts[k].ok) x.classList.add("right");
+        else if(x!==b) x.classList.add("dim");
+      });
+      if(!o.ok) b.classList.add("wrong");
+      const right = R.opts.find(x=>x.ok);
+      answer(o.ok, b, right.txt);
+    });
+  }
+  R.locked = false;
+}
+function answer(ok, el, rightTxt){
+  R.locked = true;
+  const q = R.qs[R.i];
+  R.res[R.i] = ok;
+  if(ok){ R.good++; sfx.good(); confetti(70); flyStar(el); if(el.classList.contains("numdisplay")) el.classList.add("right"); }
+  else { sfx.bad(); if(el.classList.contains("numdisplay")) el.classList.add("wrong"); }
+  setTimeout(()=>{
+    const rs = document.querySelector("#runStars"); if(rs) rs.innerHTML = `${STAR()} ${R.good}`;
+    const last = R.i === R.qs.length-1;
+    const pick = a => a[Math.floor(Math.random()*a.length)];
+    const back = document.createElement("div"); back.className="sheet-back";
+    back.innerHTML = `<div class="sheet" role="dialog" aria-modal="true" style="--fb:${ok?"var(--good)":"var(--oops)"}">
+      <h2>${ok?"🎉 "+pick(PRAISE):"💪 "+pick(OOPS)}</h2>
+      ${ok?"":`<div class="answer">La bonne réponse : ${esc(rightTxt)}</div>`}
+      <div class="fact"><span class="bulb">💡</span><div><b>Le sais-tu ?</b><p>${esc(q.f)}</p></div></div>
+      <div class="row">
+        <button class="btn ghost small" id="sayFact">🔊 Écouter</button>
+        <button class="btn ${ok?"":"sun"}" id="next">${last?"Voir mon score 🏆":"Question suivante →"}</button>
+      </div></div>`;
+    document.body.appendChild(back);
+    back.querySelector("#sayFact").onclick=()=>speak((ok?"":"La bonne réponse : "+rightTxt+". ")+q.f);
+    if(S.autoRead) speak((ok?"":"La bonne réponse : "+rightTxt+". ")+q.f);
+    back.querySelector("#next").onclick=()=>{ sfx.tap(); back.remove(); if(last) result(); else { R.i++; question(); } };
+    back.querySelector("#next").focus();
+  }, ok ? 650 : 900);
+}
+
+/* ---------- Résultat ---------- */
+function result(){
+  const {ch, good} = R;
+  const before = totalStars(), prevBest = S.best[ch.id]||0, prevRank = rankOf(before);
+  if(good > prevBest) S.best[ch.id] = good;
+  S.plays++;
+  const after = totalStars(), newRank = rankOf(after);
+  const unlocked = [];
+  if(!prevBest && good>0) unlocked.push({em:ch.em, txt:`Nouvel emblème pour ta tenue`});
+  CAPES.forEach(c=>{ if(c.need>before && c.need<=after) unlocked.push({em:"🦸", txt:`Cape ${c.name.toLowerCase()} débloquée`, color:c.c}); });
+  if(newRank.name!==prevRank.name) unlocked.unshift({em:"🎖️", txt:`Nouveau grade : ${newRank.name}`});
+  save();
+  const m = medalOf(good), st = chapterStars(good);
+  const title = good===Q_PER ? "Sans faute, champion !" : good>=7 ? "Mission brillante !" : good>=5 ? "Belle mission !" : good>=1 ? "Mission accomplie !" : "Tu t'es bien battu !";
+  const vid = videoFor(ch);
+  const el = show(`<div class="wrap result">
+    ${medalSVG(m, ch.em)}
+    <h1>${title}</h1>
+    <div class="score">${good} bonne${good>1?"s":""} réponse${good>1?"s":""} sur ${Q_PER}${good>prevBest && prevBest ? " · nouveau record !" : ""}</div>
+    <div class="bigstars">${[0,1,2].map(k=>`<span style="display:contents">${STAR(k<st).replace('class="star"',`class="star" style="animation-delay:${.5+k*.35}s"`)}</span>`).join("")}</div>
+    ${unlocked.length?`<div class="unlocks">${unlocked.map(u=>`<div class="unlock">${u.color?`<span style="width:30px;height:30px;border-radius:50%;background:${u.color};border:3px solid var(--ink);flex:none"></span>`:`<span class="em">${u.em}</span>`}${esc(u.txt)}</div>`).join("")}</div>`:""}
+    <div class="actions">
+      ${vid ? `<button class="btn sun reward-btn" id="video">🎬 Ma vidéo récompense</button>` : ""}
+    </div>
+    <div class="actions">
+      <button class="btn ghost small" id="again">↻ Rejouer</button>
+      <button class="btn ghost small" id="map">🗺️ La carte</button>
+    </div>
+  </div>`, chVars(ch));
+  setTimeout(()=>{ sfx.fanfare(); confetti(good>=5?220:120); }, 300);
+  if(vid) el.querySelector("#video").onclick=()=>{ sfx.tap(); video(ch); };
+  el.querySelector("#again").onclick=()=>{ sfx.tap(); quiz(R.ci); };
+  el.querySelector("#map").onclick=()=>{ sfx.tap(); home(); };
+}
+
+/* ---------- Vidéo récompense ---------- */
+function ytId(s){ if(!s) return null; s=s.trim(); const m = s.match(/(?:v=|youtu\.be\/|embed\/|shorts\/)([\w-]{11})/); return m?m[1]:(/^[\w-]{11}$/.test(s)?s:null); }
+function videoFor(ch){
+  const custom = ytId(S.videos[ch.id]);
+  if(custom) return {id:custom, title:"La vidéo choisie par papa", src:"YouTube"};
+  return ch.video;
+}
+const framed = (()=>{ try{ return window.self !== window.top; }catch(e){ return true; } })();
+function video(ch){
+  const v = videoFor(ch);
+  const url = `https://www.youtube.com/watch?v=${v.id}`;
+  const player = framed
+    ? `<a class="video-link" href="${url}" target="_blank" rel="noopener"><span class="play"><svg width="46" height="46" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="#fff"/></svg></span>Regarder la vidéo</a>`
+    : `<iframe src="https://www.youtube-nocookie.com/embed/${v.id}?rel=0&modestbranding=1&playsinline=1&autoplay=1" title="${esc(v.title)}" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;
+  const el = show(`<div class="wrap">
+    <div class="qtop" style="grid-template-columns:52px 1fr">
+      <button class="icon-btn" id="back" aria-label="Retour à la carte">✕</button>
+      <span class="qlabel">${ch.em} Ta récompense, Marcel !</span>
+    </div>
+    <div class="video-box">${player}</div>
+    <div><h1 class="video-title">${esc(v.title)}</h1><div class="video-src">${esc(v.src)}${framed?"":` · <a href="${url}" target="_blank" rel="noopener" style="color:inherit">ouvrir dans YouTube si la vidéo ne démarre pas</a>`}</div></div>
+    <div><button class="btn sun" id="done">🗺️ Retour à la carte</button></div>
+  </div>`, chVars(ch));
+  el.querySelector("#back").onclick=home; el.querySelector("#done").onclick=()=>{ sfx.tap(); home(); };
+}
+
+/* ---------- Vestiaire du héros ---------- */
+function locker(){
+  const n = totalStars();
+  const emblems = [{em:"⭐",need:null}].concat(CHAPTERS.map(c=>({em:c.em, need:c})));
+  const el = show(`<div class="wrap">
+    <div class="qtop" style="grid-template-columns:52px 1fr auto">
+      <button class="icon-btn" id="back" aria-label="Retour">←</button>
+      <h1 class="section-title" style="margin:0">Le vestiaire du héros</h1>
+      <span class="pill">${STAR()} ${n}</span>
+    </div>
+    <div class="locker">
+      <div class="panel" style="align-items:center;text-align:center">
+        <div id="heroBox" style="width:100%;max-width:280px">${heroSVG()}</div>
+        <div class="rank" style="justify-content:center">Grade : <b>${rankOf(n).name}</b></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:20px;min-width:0">
+        <div class="panel"><h2>Ta cape</h2>
+          <div class="swatches">${CAPES.map(c=>{ const lock=n<c.need;
+            return `<button class="swatch ${S.cape===c.c?"on":""} ${lock?"locked":""}" data-cape="${c.c}" data-need="${c.need}">
+              <i style="background:${c.c}">${lock?"🔒":""}</i>${lock?`${c.need} ⭐`:c.name}</button>`; }).join("")}</div>
+        </div>
+        <div class="panel"><h2>Ton emblème</h2>
+          <div class="swatches">${emblems.map(e=>{ const lock = e.need && !S.best[e.need.id];
+            return `<button class="swatch ${S.emblem===e.em?"on":""} ${lock?"locked":""}" data-em="${e.em}" data-lock="${lock?e.need.title:""}">
+              <i style="background:var(--bg)">${lock?"🔒":e.em}</i>${lock?"À gagner":"Choisir"}</button>`; }).join("")}</div>
+        </div>
+        <div class="panel"><h2>Tes médailles</h2>
+          <div class="trophies">${CHAPTERS.map(c=>`<div class="trophy">${medalSVG(medalOf(S.best[c.id]||0), c.em, "")}${esc(c.title)}</div>`).join("")}</div>
+        </div>
+      </div>
+    </div>
+  </div>`);
+  el.querySelector("#back").onclick=()=>{ sfx.tap(); home(); };
+  el.querySelectorAll("[data-cape]").forEach(b=>b.onclick=()=>{
+    if(n < +b.dataset.need){ sfx.bad(); toast(`Gagne ${b.dataset.need} étoiles pour débloquer cette cape !`); return; }
+    S.cape=b.dataset.cape; save(); sfx.good(); locker();
+  });
+  el.querySelectorAll("[data-em]").forEach(b=>b.onclick=()=>{
+    if(b.dataset.lock){ sfx.bad(); toast(`Réussis la mission « ${b.dataset.lock} » pour gagner cet emblème !`); return; }
+    S.emblem=b.dataset.em; save(); sfx.good(); locker();
+  });
+}
+
+/* ---------- Coin des parents ---------- */
+function parentGate(btn){
+  let t = null;
+  const start = e => { e.preventDefault(); btn.classList.add("holding"); t = setTimeout(()=>{ btn.classList.remove("holding"); gate(); }, 2000); };
+  const stop = () => { btn.classList.remove("holding"); clearTimeout(t); };
+  btn.addEventListener("pointerdown", start); ["pointerup","pointerleave","pointercancel"].forEach(ev=>btn.addEventListener(ev, stop));
+  btn.addEventListener("click", ()=>{ if(!btn.classList.contains("holding")) toast("Coin des parents : garde le doigt appuyé 2 secondes"); });
+}
+function gate(){
+  const a = 12+Math.floor(Math.random()*8), b = 6+Math.floor(Math.random()*4);
+  const el = show(`<div class="gate">
+    <h1>Coin des parents</h1>
+    <p class="note">Pour entrer, réponds à ce calcul :</p>
+    <div class="q">${a} × ${b} = ?</div>
+    <input type="number" inputmode="numeric" id="gateIn" style="font:inherit;font-size:2rem;text-align:center;width:180px;padding:10px;border-radius:16px;border:3px solid var(--line)">
+    <div style="display:flex;gap:12px"><button class="btn ghost small" id="cancel">Annuler</button><button class="btn small" id="ok">Entrer</button></div>
+  </div>`);
+  const inp = el.querySelector("#gateIn"); inp.focus();
+  const go = () => { if(+inp.value === a*b) parents(); else { sfx.bad(); toast("Ce n'est pas le bon résultat"); inp.value=""; } };
+  el.querySelector("#ok").onclick = go; inp.onkeydown = e => { if(e.key==="Enter") go(); };
+  el.querySelector("#cancel").onclick = home;
+}
+function parents(confirmReset=false){
+  const el = show(`<div class="wrap parent">
+    <div class="qtop" style="grid-template-columns:52px 1fr">
+      <button class="icon-btn" id="back" aria-label="Retour">←</button>
+      <h1 class="section-title" style="margin:0">Coin des parents</h1>
+    </div>
+    <div class="panel">
+      <h2>Réglages</h2>
+      <label class="toggle"><input type="checkbox" id="autoRead" ${S.autoRead?"checked":""}> Lire chaque question à voix haute automatiquement</label>
+      <label class="toggle"><input type="checkbox" id="sound" ${S.sound?"checked":""}> Sons et musiques</label>
+    </div>
+    <div class="panel">
+      <h2>Vidéos de récompense</h2>
+      <p class="note">Colle un lien YouTube pour remplacer la vidéo d'un chapitre. Laisse vide pour garder celle proposée.</p>
+      ${CHAPTERS.map(c=>`<div class="field"><span class="em">${c.em}</span><div><label for="v-${c.id}">${esc(c.title)} <span class="note" style="display:inline">· par défaut : ${esc(c.video.title)} (${esc(c.video.src)})</span></label>
+        <input type="text" id="v-${c.id}" data-v="${c.id}" placeholder="https://www.youtube.com/watch?v=…" value="${esc(S.videos[c.id]||"")}"></div></div>`).join("")}
+      <div><button class="btn small" id="saveV">Enregistrer les vidéos</button></div>
+    </div>
+    <div class="panel">
+      <h2>Progression de Marcel</h2>
+      <p class="note">${totalStars()} étoiles sur ${CHAPTERS.length*Q_PER} · ${S.plays} mission${S.plays>1?"s":""} jouée${S.plays>1?"s":""}. La progression est enregistrée sur cet iPad.</p>
+      <div>${confirmReset
+        ? `<p class="note" style="color:var(--tomato)">Tout effacer ? Les étoiles, médailles et capes repartent à zéro.</p><div style="display:flex;gap:10px;margin-top:10px"><button class="btn ghost small" id="noReset">Garder</button><button class="btn small danger" id="yesReset">Oui, tout effacer</button></div>`
+        : `<button class="btn ghost small" id="reset">Remettre à zéro</button>`}</div>
+    </div>
+  </div>`);
+  el.querySelector("#back").onclick = home;
+  el.querySelector("#autoRead").onchange = e => { S.autoRead = e.target.checked; save(); };
+  el.querySelector("#sound").onchange = e => { S.sound = e.target.checked; save(); };
+  el.querySelector("#saveV").onclick = () => {
+    let bad = [];
+    el.querySelectorAll("[data-v]").forEach(i=>{ const v=i.value.trim(); if(v && !ytId(v)) bad.push(i.dataset.v); else S.videos[i.dataset.v]=v; });
+    save(); toast(bad.length ? "Un lien n'est pas un lien YouTube valide" : "Vidéos enregistrées");
+  };
+  const r = el.querySelector("#reset"); if(r) r.onclick = () => parents(true);
+  const n = el.querySelector("#noReset"); if(n) n.onclick = () => parents(false);
+  const y = el.querySelector("#yesReset"); if(y) y.onclick = () => { S = Object.assign({}, DEF, {videos:S.videos, autoRead:S.autoRead, sound:S.sound}); save(); toast("Progression remise à zéro"); home(); };
+}
+
+/* ---------- Démarrage ---------- */
+try{ if("speechSynthesis" in window) speechSynthesis.getVoices(); }catch(e){}
+if(!framed && "serviceWorker" in navigator && location.protocol==="https:"){ navigator.serviceWorker.register("sw.js").catch(()=>{}); }
+document.addEventListener("gesturestart", e=>e.preventDefault());
+home();
+})();
+</script>
+
+</body>
+</html>
